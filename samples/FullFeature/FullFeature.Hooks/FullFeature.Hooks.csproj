@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Real projects reference the Tenon.Hooks NuGet package. -->
+    <ProjectReference Include="..\..\..\src\Tenon.Hooks\Tenon.Hooks.csproj" />
+  </ItemGroup>
+</Project>

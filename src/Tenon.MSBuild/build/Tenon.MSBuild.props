@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <!-- Set to true (for example: dotnet publish -p:BuildInstaller=true) to build the installer after publishing. -->
+    <BuildInstaller Condition="'$(BuildInstaller)' == ''">false</BuildInstaller>
+    <!-- tenon.json next to the project by default. -->
+    <TenonDefinition Condition="'$(TenonDefinition)' == ''">$(MSBuildProjectDirectory)\tenon.json</TenonDefinition>
+    <TenonOutputDir Condition="'$(TenonOutputDir)' == ''"></TenonOutputDir>
+    <TenonExtraArgs Condition="'$(TenonExtraArgs)' == ''"></TenonExtraArgs>
+  </PropertyGroup>
+</Project>

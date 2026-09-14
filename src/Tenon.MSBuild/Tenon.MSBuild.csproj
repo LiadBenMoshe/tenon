@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>Tenon.MSBuild</PackageId>
+    <Description>Build a Tenon installer from dotnet publish: dotnet publish -p:BuildInstaller=true.</Description>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <!-- Folder holding the published CLI (set by build/pack.ps1). -->
+    <TenonCliDir Condition="'$(TenonCliDir)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\cli</TenonCliDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="build\**" Pack="true" PackagePath="build" />
+    <None Include="$(TenonCliDir)\**" Pack="true" PackagePath="tools" Condition="Exists('$(TenonCliDir)')" Visible="false" />
+  </ItemGroup>
+</Project>

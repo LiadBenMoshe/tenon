@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>Tenon.HookHost</RootNamespace>
+    <AssemblyName>tenon-hookhost</AssemblyName>
+    <RollForward>LatestMajor</RollForward>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <RuntimeIdentifiers>win-x64;win-x86;win-arm64</RuntimeIdentifiers>
+    <DebugType>none</DebugType>
+    <IsPackable>false</IsPackable>
+    <Description>Runs Tenon C# setup hooks inside a Windows Installer custom action.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Tenon.Hooks\Tenon.Hooks.csproj" />
+  </ItemGroup>
+</Project>

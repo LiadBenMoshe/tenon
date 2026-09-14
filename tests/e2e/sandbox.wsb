@@ -1,0 +1,19 @@
+<Configuration>
+  <!-- Windows Sandbox configuration: maps the repository artifacts read-only and runs the e2e script on a clean OS
+       (no .NET runtime installed, so the prerequisite installer path is exercised). Start with: sandbox.wsb -->
+  <MappedFolders>
+    <MappedFolder>
+      <HostFolder>C:\Liad-Place\My Dev\NewInstaller\samples\HelloWpf\artifacts</HostFolder>
+      <SandboxFolder>C:\artifacts</SandboxFolder>
+      <ReadOnly>true</ReadOnly>
+    </MappedFolder>
+    <MappedFolder>
+      <HostFolder>C:\Liad-Place\My Dev\NewInstaller\tests\e2e</HostFolder>
+      <SandboxFolder>C:\e2e</SandboxFolder>
+      <ReadOnly>true</ReadOnly>
+    </MappedFolder>
+  </MappedFolders>
+  <LogonCommand>
+    <Command>powershell -ExecutionPolicy Bypass -NoExit -Command "C:\e2e\run.ps1 -Setup (Get-ChildItem C:\artifacts\*-Setup-*.exe | Select-Object -First 1).FullName -PerMachine"</Command>
+  </LogonCommand>
+</Configuration>

@@ -1,0 +1,18 @@
+<Project>
+  <PropertyGroup>
+    <_TenonCliDll>$(MSBuildThisFileDirectory)..\tools\tenon.dll</_TenonCliDll>
+  </PropertyGroup>
+
+  <!-- Runs after dotnet publish and packages the publish folder with the Tenon CLI bundled in this package. -->
+  <Target Name="TenonBuildInstaller" AfterTargets="Publish" Condition="'$(BuildInstaller)' == 'true'">
+    <Error Condition="!Exists('$(TenonDefinition)')" Text="Tenon: definition '$(TenonDefinition)' not found. Run 'tenon init' or set TenonDefinition." />
+    <Error Condition="!Exists('$(_TenonCliDll)')" Text="Tenon: the bundled CLI is missing from the Tenon.MSBuild package." />
+    <PropertyGroup>
+      <_TenonPublishDir>$([System.IO.Path]::GetFullPath('$(PublishDir)'))</_TenonPublishDir>
+      <_TenonOutArg Condition="'$(TenonOutputDir)' != ''">--out "$(TenonOutputDir)"</_TenonOutArg>
+    </PropertyGroup>
+    <Message Importance="high" Text="Tenon: building installer from $(_TenonPublishDir)" />
+    <Exec Command="dotnet &quot;$(_TenonCliDll)&quot; build --definition &quot;$(TenonDefinition)&quot; --publish-dir &quot;$(_TenonPublishDir)&quot; $(_TenonOutArg) $(TenonExtraArgs)"
+          EnvironmentVariables="DOTNET_HOST_PATH=$(DOTNET_HOST_PATH)" />
+  </Target>
+</Project>

@@ -1,0 +1,935 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tenon.dev/schema/v1/tenon.schema.json",
+  "title": "Tenon installer definition",
+  "description": "Describes how to package a .NET desktop application into an MSI and Setup.exe.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "build": {
+      "$ref": "#/definitions/BuildSection",
+      "description": "How the application is built and published before packaging."
+    },
+    "product": {
+      "$ref": "#/definitions/ProductSection",
+      "description": "Product identity shown in Add/Remove Programs and used for upgrades."
+    },
+    "install": {
+      "$ref": "#/definitions/InstallSection",
+      "description": "Where and how the product is installed."
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/FileRule"
+      },
+      "description": "Files and folders to install. Globs are supported."
+    },
+    "shortcuts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ShortcutDef"
+      },
+      "description": "Start Menu, Desktop and Startup shortcuts."
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/TaskDef"
+      },
+      "description": "Optional checkboxes shown on the Options page. Each task becomes a feature."
+    },
+    "fileAssociations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/FileAssociationDef"
+      },
+      "description": "File extensions registered for the application."
+    },
+    "registry": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/RegistryDef"
+      },
+      "description": "Registry values written at install and removed at uninstall."
+    },
+    "environment": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/EnvironmentDef"
+      },
+      "description": "Environment variables set, appended or removed."
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ServiceDef"
+      },
+      "description": "Windows services installed with the product."
+    },
+    "firewall": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/FirewallDef"
+      },
+      "description": "Windows Firewall exceptions."
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/PrerequisiteDef"
+      },
+      "description": "Runtimes and packages that must be present before the product installs."
+    },
+    "hooks": {
+      "$ref": "#/definitions/HooksSection",
+      "description": "C# setup hooks that run during install and uninstall."
+    },
+    "ui": {
+      "$ref": "#/definitions/UiSection",
+      "description": "Look and flow of the Setup.exe user interface."
+    },
+    "signing": {
+      "$ref": "#/definitions/SigningSection",
+      "description": "Code signing configuration."
+    },
+    "update": {
+      "$ref": "#/definitions/UpdateSection",
+      "description": "Auto-update feed used by the Tenon.Update runtime."
+    },
+    "output": {
+      "$ref": "#/definitions/OutputSection",
+      "description": "Output file names and locations."
+    }
+  },
+  "definitions": {
+    "BuildSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "project": {
+          "type": "string",
+          "description": "Path to the application project (.csproj) to publish. Relative to tenon.json."
+        },
+        "configuration": {
+          "type": "string",
+          "description": "Build configuration passed to dotnet publish. Default: Release.",
+          "default": "Release"
+        },
+        "runtimeIdentifier": {
+          "type": "string",
+          "description": "Runtime identifier passed to dotnet publish. Default derived from product.arch (win-x64)."
+        },
+        "selfContained": {
+          "type": "boolean",
+          "description": "Publish the application self-contained (bundles the .NET runtime).",
+          "default": false
+        },
+        "publishArgs": {
+          "type": "string",
+          "description": "Extra arguments appended to dotnet publish."
+        },
+        "publishDir": {
+          "type": "string",
+          "description": "Use an existing publish folder instead of running dotnet publish. Relative to tenon.json."
+        }
+      }
+    },
+    "ProductSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Product name shown to users and in Add/Remove Programs.",
+          "default": ""
+        },
+        "version": {
+          "type": "string",
+          "description": "Product version. Use $(AssemblyVersion) to take it from the main executable.",
+          "default": "$(AssemblyVersion)"
+        },
+        "publisher": {
+          "type": "string",
+          "description": "Company or publisher name.",
+          "default": ""
+        },
+        "upgradeCode": {
+          "type": "string",
+          "description": "Stable GUID that identifies the product family across versions. Generated by tenon init."
+        },
+        "description": {
+          "type": "string",
+          "description": "Short description shown in Add/Remove Programs."
+        },
+        "url": {
+          "type": "string",
+          "description": "Product web site."
+        },
+        "supportUrl": {
+          "type": "string",
+          "description": "Support web site."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Path to an .ico file used for Add/Remove Programs and the setup window."
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Languages of the installer. The first is the default; others are embedded as transforms."
+        },
+        "arch": {
+          "type": "string",
+          "enum": [
+            "x64",
+            "x86",
+            "arm64"
+          ],
+          "description": "Target architecture: x64, x86 or arm64.",
+          "default": "x64"
+        },
+        "allowSameVersionUpgrades": {
+          "type": "boolean",
+          "description": "Allow re-installing the same version over itself as a major upgrade. Default false.",
+          "default": false
+        }
+      }
+    },
+    "InstallSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "type": "string",
+          "enum": [
+            "perMachine",
+            "perUser",
+            "either"
+          ],
+          "description": "perMachine (Program Files, admin), perUser (no admin) or either (user chooses).",
+          "default": "either"
+        },
+        "defaultScope": {
+          "type": "string",
+          "enum": [
+            "perMachine",
+            "perUser",
+            "either"
+          ],
+          "description": "Default scope when scope is \u0027either\u0027.",
+          "default": "perUser"
+        },
+        "dir": {
+          "type": "string",
+          "description": "Installation folder, e.g. {autopf}\\Company\\Product. Becomes {app}.",
+          "default": "{autopf}\\$(Publisher)\\$(ProductName)"
+        },
+        "allowChangeDir": {
+          "type": "boolean",
+          "description": "Let the user change the installation folder.",
+          "default": true
+        },
+        "minWindows": {
+          "type": "string",
+          "description": "Minimum Windows version, e.g. 10.0.17763."
+        },
+        "mainExe": {
+          "type": "string",
+          "description": "Main executable file name inside {app}. Used for shortcuts, close-app detection and run-after-install."
+        },
+        "closeRunningApp": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "force",
+            "fail"
+          ],
+          "description": "What to do when the application is running during install: prompt, force or fail.",
+          "default": "prompt"
+        },
+        "runAfterInstall": {
+          "type": "boolean",
+          "description": "Offer to launch the application when setup finishes.",
+          "default": true
+        },
+        "deleteAppDataOnUninstall": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Folders deleted on uninstall (user data), e.g. {localappdata}\\Company\\Product."
+        },
+        "arp": {
+          "$ref": "#/definitions/ArpSection",
+          "description": "Add/Remove Programs options."
+        }
+      }
+    },
+    "ArpSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "noModify": {
+          "type": "boolean",
+          "description": "Hide the Modify button.",
+          "default": false
+        },
+        "noRepair": {
+          "type": "boolean",
+          "description": "Hide the Repair button.",
+          "default": false
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "Hide the product from Add/Remove Programs entirely.",
+          "default": false
+        }
+      }
+    },
+    "FileRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "Source path or glob, e.g. {publish}\\** or docs\\readme.txt. Relative to tenon.json.",
+          "default": ""
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns to exclude, e.g. *.pdb."
+        },
+        "to": {
+          "type": "string",
+          "description": "Target folder, e.g. {app} or {app}\\plugins.",
+          "default": "{app}"
+        },
+        "permanent": {
+          "type": "boolean",
+          "description": "Never remove these files on uninstall.",
+          "default": false
+        },
+        "task": {
+          "type": "string",
+          "description": "Only install when this task is selected."
+        },
+        "condition": {
+          "type": "string",
+          "description": "Raw MSI condition for advanced scenarios."
+        }
+      }
+    },
+    "ShortcutDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Shortcut display name.",
+          "default": ""
+        },
+        "target": {
+          "type": "string",
+          "description": "Target file, e.g. {app}\\MyApp.exe.",
+          "default": ""
+        },
+        "in": {
+          "type": "string",
+          "description": "Folder: {group} (Start Menu), {desktop} or {startup}.",
+          "default": "{group}"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Optional icon file, e.g. {app}\\MyApp.exe or {app}\\icon.ico."
+        },
+        "iconIndex": {
+          "type": "integer",
+          "description": "Icon index inside the icon file.",
+          "default": 0
+        },
+        "args": {
+          "type": "string",
+          "description": "Command line arguments."
+        },
+        "workingDir": {
+          "type": "string",
+          "description": "Working directory. Defaults to the folder of the target."
+        },
+        "description": {
+          "type": "string",
+          "description": "Tooltip description."
+        },
+        "task": {
+          "type": "string",
+          "description": "Only create when this task is selected."
+        }
+      }
+    },
+    "TaskDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier referenced by other elements (letters, digits, underscore).",
+          "default": ""
+        },
+        "title": {
+          "type": "string",
+          "description": "Checkbox text.",
+          "default": ""
+        },
+        "description": {
+          "type": "string",
+          "description": "Longer description."
+        },
+        "default": {
+          "type": "boolean",
+          "description": "Checked by default.",
+          "default": true
+        }
+      }
+    },
+    "FileAssociationDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "extension": {
+          "type": "string",
+          "description": "Extension including the dot, e.g. .cnote.",
+          "default": ""
+        },
+        "progId": {
+          "type": "string",
+          "description": "ProgId, e.g. Contoso.Notes.Document.",
+          "default": ""
+        },
+        "description": {
+          "type": "string",
+          "description": "Friendly type name shown in Explorer."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon, e.g. {app}\\MyApp.exe,1."
+        },
+        "open": {
+          "type": "string",
+          "description": "Open command, e.g. \u0022{app}\\MyApp.exe\u0022 \u0022%1\u0022.",
+          "default": ""
+        },
+        "mime": {
+          "type": "string",
+          "description": "MIME type."
+        },
+        "task": {
+          "type": "string",
+          "description": "Only register when this task is selected."
+        }
+      }
+    },
+    "RegistryDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "root": {
+          "type": "string",
+          "enum": [
+            "hkmu",
+            "hklm",
+            "hkcu",
+            "hkcr",
+            "hku"
+          ],
+          "description": "HKMU (HKLM or HKCU depending on scope), HKLM, HKCU, HKCR or HKU.",
+          "default": "hkmu"
+        },
+        "key": {
+          "type": "string",
+          "description": "Key path, e.g. Software\\Company\\Product.",
+          "default": ""
+        },
+        "name": {
+          "type": "string",
+          "description": "Value name. Omit for the default value."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "expandString",
+            "dword",
+            "qword",
+            "binary",
+            "multiString"
+          ],
+          "description": "Value type: string, expandString, dword, qword, binary, multiString.",
+          "default": "string"
+        },
+        "value": {
+          "type": "string",
+          "description": "Value. Supports {app} and other constants."
+        },
+        "task": {
+          "type": "string",
+          "description": "Only write when this task is selected."
+        }
+      }
+    },
+    "EnvironmentDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Variable name.",
+          "default": ""
+        },
+        "value": {
+          "type": "string",
+          "description": "Value. Supports {app}.",
+          "default": ""
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "set",
+            "append",
+            "prepend",
+            "remove"
+          ],
+          "description": "set, append, prepend or remove.",
+          "default": "set"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "user",
+            "machine"
+          ],
+          "description": "auto (follows install scope), user or machine.",
+          "default": "auto"
+        },
+        "task": {
+          "type": "string",
+          "description": "Only apply when this task is selected."
+        }
+      }
+    },
+    "ServiceDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Service name (internal).",
+          "default": ""
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description."
+        },
+        "exe": {
+          "type": "string",
+          "description": "Executable, e.g. {app}\\MyService.exe.",
+          "default": ""
+        },
+        "args": {
+          "type": "string",
+          "description": "Command line arguments."
+        },
+        "start": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "demand",
+            "disabled",
+            "delayedAuto"
+          ],
+          "description": "auto, demand, disabled or delayedAuto.",
+          "default": "auto"
+        },
+        "account": {
+          "type": "string",
+          "description": "Account: LocalSystem, LocalService, NetworkService or a user name.",
+          "default": "LocalSystem"
+        },
+        "password": {
+          "type": "string",
+          "description": "Account password (use a build macro; never commit secrets)."
+        },
+        "startOnInstall": {
+          "type": "boolean",
+          "description": "Start the service at the end of installation.",
+          "default": true
+        },
+        "stopOnUninstall": {
+          "type": "boolean",
+          "description": "Stop the service before uninstall/upgrade.",
+          "default": true
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Service dependencies."
+        },
+        "recovery": {
+          "$ref": "#/definitions/ServiceRecoveryDef",
+          "description": "Recovery actions."
+        },
+        "requires": {
+          "type": "string",
+          "enum": [
+            "any",
+            "perMachine",
+            "perUser"
+          ],
+          "description": "Requires a per-machine install (services always do).",
+          "default": "perMachine"
+        }
+      }
+    },
+    "ServiceRecoveryDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "firstFailure": {
+          "type": "string",
+          "description": "Action on first failure: restart, none, reboot, runCommand.",
+          "default": "restart"
+        },
+        "secondFailure": {
+          "type": "string",
+          "default": "restart"
+        },
+        "subsequentFailures": {
+          "type": "string",
+          "default": "restart"
+        },
+        "resetPeriod": {
+          "type": "integer",
+          "description": "Seconds before the failure count resets.",
+          "default": 86400
+        },
+        "restartDelay": {
+          "type": "integer",
+          "description": "Milliseconds to wait before restarting.",
+          "default": 60000
+        }
+      }
+    },
+    "FirewallDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Rule name.",
+          "default": ""
+        },
+        "program": {
+          "type": "string",
+          "description": "Program path, e.g. {app}\\MyApp.exe."
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "in",
+            "out"
+          ],
+          "default": "in"
+        },
+        "protocol": {
+          "type": "string",
+          "enum": [
+            "tcp",
+            "udp",
+            "any"
+          ],
+          "default": "any"
+        },
+        "port": {
+          "type": "string",
+          "description": "Port or port range, e.g. 8080 or 8000-8010."
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Profiles: domain, private, public. Default: all."
+        },
+        "requires": {
+          "type": "string",
+          "enum": [
+            "any",
+            "perMachine",
+            "perUser"
+          ],
+          "default": "perMachine"
+        }
+      }
+    },
+    "PrerequisiteDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Built-in id (dotnet-desktop, dotnet-runtime, vcredist-x64, vcredist-x86, vcredist-arm64) or a custom id.",
+          "default": ""
+        },
+        "version": {
+          "type": "string",
+          "description": "Version, e.g. 8.0 for .NET or 14.30 for VC\u002B\u002B."
+        },
+        "rollForward": {
+          "type": "string",
+          "description": "Roll-forward policy for .NET: latestPatch, latestMinor, latestMajor."
+        },
+        "download": {
+          "type": "boolean",
+          "description": "Download the package at install time instead of embedding it.",
+          "default": false
+        },
+        "file": {
+          "type": "string",
+          "description": "Custom package file (msi or exe). Relative to tenon.json."
+        },
+        "args": {
+          "type": "string",
+          "description": "Arguments for a custom exe package."
+        },
+        "detect": {
+          "$ref": "#/definitions/PrerequisiteDetectDef",
+          "description": "Detection for custom packages."
+        },
+        "requires": {
+          "type": "string",
+          "enum": [
+            "any",
+            "perMachine",
+            "perUser"
+          ],
+          "default": "any"
+        }
+      }
+    },
+    "PrerequisiteDetectDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "productCode": {
+          "type": "string",
+          "description": "Installed MSI product code."
+        },
+        "upgradeCode": {
+          "type": "string",
+          "description": "MSI upgrade code (any version)."
+        },
+        "registryValue": {
+          "type": "string",
+          "description": "Registry value that must exist, e.g. HKLM\\Software\\Vendor\\Product\\Version."
+        },
+        "minVersion": {
+          "type": "string",
+          "description": "Minimum value for registryValue."
+        },
+        "file": {
+          "type": "string",
+          "description": "File that must exist."
+        }
+      }
+    },
+    "HooksSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "project": {
+          "type": "string",
+          "description": "Hooks project (.csproj) that references Tenon.Hooks. Relative to tenon.json."
+        },
+        "assembly": {
+          "type": "string",
+          "description": "Prebuilt hooks assembly instead of a project."
+        },
+        "runtime": {
+          "type": "string",
+          "description": "Where the hook host finds a .NET runtime: \u0027shared\u0027 (machine runtime) or \u0027app\u0027 (self-contained app folder).",
+          "default": "shared"
+        }
+      }
+    },
+    "UiSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "style": {
+          "type": "string",
+          "enum": [
+            "modern",
+            "oneClick"
+          ],
+          "description": "modern (wizard pages) or oneClick (splash and progress only).",
+          "default": "modern"
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Page order. Available: welcome, license, scope, folder, options, progress, finish."
+        },
+        "license": {
+          "type": "string",
+          "description": "License file (.rtf or .txt). Relative to tenon.json."
+        },
+        "theme": {
+          "$ref": "#/definitions/UiThemeSection"
+        },
+        "strings": {
+          "type": "string",
+          "description": "Strings override file pattern, e.g. setup-strings.{lang}.json."
+        }
+      }
+    },
+    "UiThemeSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accent": {
+          "type": "string",
+          "description": "Accent color, e.g. #2563EB.",
+          "default": "#2563EB"
+        },
+        "background": {
+          "type": "string",
+          "description": "Window background color."
+        },
+        "darkMode": {
+          "type": "string",
+          "description": "auto, light or dark.",
+          "default": "auto"
+        },
+        "logo": {
+          "type": "string",
+          "description": "Logo image (png). Relative to tenon.json."
+        },
+        "banner": {
+          "type": "string",
+          "description": "Banner image shown on the welcome page."
+        },
+        "font": {
+          "type": "string",
+          "description": "Font family."
+        }
+      }
+    },
+    "SigningSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "none",
+            "signtool",
+            "command"
+          ],
+          "default": "none"
+        },
+        "certificate": {
+          "$ref": "#/definitions/SigningCertificateDef"
+        },
+        "timestampUrl": {
+          "type": "string",
+          "description": "RFC 3161 timestamp server URL.",
+          "default": "http://timestamp.digicert.com"
+        },
+        "command": {
+          "type": "string",
+          "description": "Command template used when mode is \u0027command\u0027. {file} and {ts} are replaced."
+        }
+      }
+    },
+    "SigningCertificateDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "thumbprint": {
+          "type": "string",
+          "description": "Certificate thumbprint in the current user or machine store."
+        },
+        "file": {
+          "type": "string",
+          "description": "PFX file path."
+        },
+        "passwordEnv": {
+          "type": "string",
+          "description": "Environment variable holding the PFX password."
+        }
+      }
+    },
+    "UpdateSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "feed": {
+          "type": "string",
+          "description": "Feed URL. {channel} is replaced by the channel name.",
+          "default": ""
+        },
+        "channel": {
+          "type": "string",
+          "default": "stable"
+        },
+        "delta": {
+          "type": "boolean",
+          "description": "Generate delta packages when possible.",
+          "default": false
+        }
+      }
+    },
+    "OutputSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dir": {
+          "type": "string",
+          "description": "Output folder. Relative to tenon.json.",
+          "default": "artifacts\\installer"
+        },
+        "msi": {
+          "type": "string",
+          "description": "MSI file name pattern.",
+          "default": "$(ProductName)-$(Version)-$(Arch).msi"
+        },
+        "setup": {
+          "type": "string",
+          "description": "Setup.exe file name pattern.",
+          "default": "$(ProductName)-Setup-$(Version).exe"
+        },
+        "extraMsi": {
+          "type": "boolean",
+          "description": "Also keep the standalone MSI next to Setup.exe (for IT deployment).",
+          "default": true
+        }
+      }
+    }
+  }
+}

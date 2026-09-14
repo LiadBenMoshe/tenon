@@ -1,0 +1,47 @@
+name: release
+
+# Tag a commit "v1.2.3" to build the packages and attach them to a GitHub release.
+# Add a NUGET_API_KEY repository secret to also push them to nuget.org.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Version from tag
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}".TrimStart("v")
+          "TENON_VERSION=$v" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Build and test
+        run: |
+          dotnet build Tenon.sln -c Release -nologo -p:Version=${{ env.TENON_VERSION }}
+          dotnet test Tenon.sln -c Release --no-build -nologo
+
+      - name: Publish build assets
+        shell: pwsh
+        run: ./build/publish-assets.ps1 -Configuration Release
+
+      - name: Pack
+        shell: pwsh
+        run: ./build/pack.ps1 -Configuration Release
+
+      - name: GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/packages/*.nupkg
+          generate_release_notes: true
+
+      - name: Push to nuget.org
+        if: ${{ secrets.NUGET_API_KEY != '' }}
+        run: dotnet nuget push artifacts/packages/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

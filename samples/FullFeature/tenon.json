@@ -1,0 +1,67 @@
+{
+  "$schema": "../../schema/tenon.schema.json",
+  "build": {
+    "project": "FullFeature.csproj"
+  },
+  "product": {
+    "name": "Contoso Notes",
+    "version": "$(AssemblyVersion)",
+    "publisher": "Contoso",
+    "upgradeCode": "6F1B2C0E-9C53-4D8E-9A1E-3B2F0C1D9A77",
+    "description": "Fast note taking for busy people",
+    "url": "https://contoso.example/notes",
+    "supportUrl": "https://contoso.example/support",
+    "arch": "x64"
+  },
+  "install": {
+    "scope": "either",
+    "defaultScope": "perUser",
+    "dir": "{autopf}\\Contoso\\Notes",
+    "mainExe": "FullFeature.exe",
+    "minWindows": "10.0.17763",
+    "runAfterInstall": true,
+    "deleteAppDataOnUninstall": [ "{localappdata}\\Contoso\\Notes" ]
+  },
+  "files": [
+    { "from": "{publish}\\**", "exclude": [ "*.pdb" ], "to": "{app}" },
+    { "from": "docs\\readme.txt", "to": "{app}\\docs", "task": "docs" }
+  ],
+  "shortcuts": [
+    { "name": "Contoso Notes", "target": "{app}\\FullFeature.exe", "in": "{group}", "description": "Take notes" },
+    { "name": "Contoso Notes", "target": "{app}\\FullFeature.exe", "in": "{desktop}", "task": "desktopIcon" },
+    { "name": "Contoso Notes", "target": "{app}\\FullFeature.exe", "in": "{startup}", "args": "--minimized", "task": "autoStart" }
+  ],
+  "tasks": [
+    { "id": "desktopIcon", "title": "Create a desktop shortcut", "default": true },
+    { "id": "autoStart", "title": "Start Contoso Notes when I sign in", "description": "Adds a shortcut to the Startup folder.", "default": false },
+    { "id": "docs", "title": "Install documentation", "default": true }
+  ],
+  "fileAssociations": [
+    { "extension": ".cnote", "progId": "Contoso.Notes.Document", "description": "Contoso Note", "icon": "{app}\\FullFeature.exe,0", "open": "\"{app}\\FullFeature.exe\" \"%1\"", "mime": "application/x-contoso-note" }
+  ],
+  "registry": [
+    { "root": "HKMU", "key": "Software\\Contoso\\Notes", "name": "InstallDir", "value": "{app}" },
+    { "root": "HKMU", "key": "Software\\Contoso\\Notes", "name": "Version", "value": "$(Version)" },
+    { "root": "HKMU", "key": "Software\\Contoso\\Notes", "name": "Telemetry", "type": "dword", "value": "0" }
+  ],
+  "environment": [
+    { "name": "CONTOSO_NOTES_HOME", "value": "{app}", "action": "set" }
+  ],
+  "firewall": [
+    { "name": "Sync", "program": "{app}\\FullFeature.exe", "direction": "in", "protocol": "tcp", "port": "8765", "profiles": [ "private", "domain" ] }
+  ],
+  "prerequisites": [
+    { "id": "dotnet-desktop", "version": "8.0", "download": true }
+  ],
+  "hooks": {
+    "project": "FullFeature.Hooks\\FullFeature.Hooks.csproj"
+  },
+  "ui": {
+    "style": "modern",
+    "license": "LICENSE.rtf",
+    "theme": { "accent": "#7C3AED", "darkMode": "auto" }
+  },
+  "output": {
+    "dir": "artifacts"
+  }
+}

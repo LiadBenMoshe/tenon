@@ -1,0 +1,17 @@
+bin/
+obj/
+artifacts/
+.vs/
+.idea/
+*.user
+*.suo
+TestResults/
+.tenon/
+*.msi
+*.cab
+*.log
+*.nupkg
+# prebuilt assets are produced by build/publish-assets.ps1
+src/Tenon.Setup/bin/
+src/Tenon.CustomAction/bin/
+src/Tenon.HookHost/bin/

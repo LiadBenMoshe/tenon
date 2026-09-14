@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build
+        run: dotnet build Tenon.sln -c Release -nologo
+
+      - name: Unit tests
+        run: dotnet test Tenon.sln -c Release --no-build -nologo --logger "trx;LogFileName=tests.trx"
+
+      - name: Publish build assets (stub, custom action DLL, hook host)
+        shell: pwsh
+        run: ./build/publish-assets.ps1 -Configuration Release
+
+      - name: Build the samples
+        shell: pwsh
+        run: |
+          dotnet build src/Tenon.Cli/Tenon.Cli.csproj -c Release -nologo
+          Push-Location samples/HelloWpf
+          dotnet ../../src/Tenon.Cli/bin/Release/net8.0/tenon.dll build
+          Pop-Location
+          Push-Location samples/FullFeature
+          dotnet ../../src/Tenon.Cli/bin/Release/net8.0/tenon.dll build
+          Pop-Location
+
+      - name: End-to-end (silent install, upgrade, uninstall)
+        shell: pwsh
+        run: ./tests/e2e/run.ps1 -Setup (Get-ChildItem samples/HelloWpf/artifacts/*-Setup-*.exe | Select-Object -First 1).FullName
+
+      - name: Pack
+        shell: pwsh
+        run: ./build/pack.ps1 -Configuration Release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: artifacts/packages/*.nupkg

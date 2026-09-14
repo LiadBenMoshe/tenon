@@ -1,0 +1,12 @@
+<Window x:Class="HelloWpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Hello Tenon" Height="260" Width="460" WindowStartupLocation="CenterScreen">
+    <StackPanel Margin="24" VerticalAlignment="Center">
+        <TextBlock Text="Hello from Tenon" FontSize="24" FontWeight="SemiBold" />
+        <TextBlock x:Name="InfoText" Margin="0,12,0,0" TextWrapping="Wrap" />
+        <TextBlock x:Name="UpdateText" Margin="0,12,0,0" TextWrapping="Wrap" Foreground="Gray" />
+        <Button x:Name="UpdateButton" Content="Install update and restart" Margin="0,12,0,0" HorizontalAlignment="Left" Padding="12,6"
+                Visibility="Collapsed" Click="UpdateButton_Click" />
+    </StackPanel>
+</Window>

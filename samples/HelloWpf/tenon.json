@@ -1,0 +1,46 @@
+{
+  "$schema": "https://tenon.dev/schema/v1/tenon.schema.json",
+  "build": {
+    "project": "HelloWpf.csproj"
+  },
+  "product": {
+    "name": "Hello Tenon",
+    "version": "$(AssemblyVersion)",
+    "publisher": "Tenon Samples",
+    "upgradeCode": "A1B2C3D4-0001-4A5B-9C8D-0123456789AB",
+    "description": "Sample WPF application packaged with Tenon",
+    "url": "https://github.com/LiadBenMoshe/tenon",
+    "arch": "x64"
+  },
+  "install": {
+    "scope": "either",
+    "defaultScope": "perUser",
+    "dir": "{autopf}\\Tenon Samples\\Hello Tenon",
+    "mainExe": "HelloWpf.exe",
+    "minWindows": "10.0.17763"
+  },
+  "files": [
+    { "from": "{publish}\\**", "exclude": [ "*.pdb" ], "to": "{app}" }
+  ],
+  "shortcuts": [
+    { "name": "Hello Tenon", "target": "{app}\\HelloWpf.exe", "in": "{group}", "description": "Launch Hello Tenon" },
+    { "name": "Hello Tenon", "target": "{app}\\HelloWpf.exe", "in": "{desktop}", "task": "desktopIcon" }
+  ],
+  "tasks": [
+    { "id": "desktopIcon", "title": "Create a desktop shortcut", "default": true }
+  ],
+  "registry": [
+    { "root": "HKMU", "key": "Software\\Tenon Samples\\Hello Tenon", "name": "InstallDir", "value": "{app}" },
+    { "root": "HKMU", "key": "Software\\Tenon Samples\\Hello Tenon", "name": "Version", "value": "$(Version)" }
+  ],
+  "prerequisites": [
+    { "id": "dotnet-desktop", "version": "8.0", "download": true }
+  ],
+  "update": {
+    "feed": "$(env.TENON_SAMPLE_FEED)",
+    "channel": "stable"
+  },
+  "output": {
+    "dir": "artifacts"
+  }
+}

@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <RootNamespace>Tenon.Hooks</RootNamespace>
+    <PackageId>Tenon.Hooks</PackageId>
+    <Description>Write installer logic in C#: hooks that Tenon runs before and after files are installed, on upgrade and on uninstall.</Description>
+  </PropertyGroup>
+</Project>
