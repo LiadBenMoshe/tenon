@@ -29,12 +29,20 @@ foreach ($rid in $Rids) {
         $arch = $rid.Substring(4)
         $vsArch = if ($arch -eq "x86") { "x86" } elseif ($arch -eq "arm64") { "arm64" } else { "amd64" }
         $args = "publish src/Tenon.CustomAction/Tenon.CustomAction.csproj -c $Configuration -r $rid -o src/Tenon.CustomAction/bin/native/$rid -nologo -v q"
-        if ($vsdev) {
-            cmd.exe /c "call `"$vsdev`" -arch=$vsArch -no_logo && dotnet $args -p:IlcUseEnvironmentalTools=true"
-        } else {
-            Invoke-Expression "dotnet $args"
+        # vcvars prints a harmless "'vswhere.exe' is not recognized" line on stderr on some machines; judge by the exit code only.
+        $previous = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        try {
+            if ($vsdev) {
+                cmd.exe /c "call `"$vsdev`" -arch=$vsArch -no_logo 2>nul && dotnet $args -p:IlcUseEnvironmentalTools=true" 2>&1 | ForEach-Object { "$_" }
+            } else {
+                Invoke-Expression "dotnet $args" 2>&1 | ForEach-Object { "$_" }
+            }
+            $exit = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $previous
         }
-        if ($LASTEXITCODE -ne 0) { throw "custom action publish failed for $rid" }
+        if ($exit -ne 0) { throw "custom action publish failed for $rid" }
     }
 }
 Write-Host "Assets published."

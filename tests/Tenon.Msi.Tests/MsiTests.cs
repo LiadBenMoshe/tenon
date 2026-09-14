@@ -269,6 +269,7 @@ public class EndToEndMsiTests
         // Remove machine-specific noise before comparing.
         var actual = string.Join("\n", tables.Tables.Where(t => t.Rows.Count > 0).Select(t => t.ToIdt()));
         actual = actual.Replace(dir, "<dir>");
+        actual = System.Text.RegularExpressions.Regex.Replace(actual, @"TenonVersion\t[\d.]+", "TenonVersion\t<version>");
 
         var goldenDir = Path.Combine(FindRepoRoot(), "tests", "Tenon.Msi.Tests", "golden");
         Directory.CreateDirectory(goldenDir);

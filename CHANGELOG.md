@@ -1,8 +1,10 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to Tenon are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [0.1.1] - 2026-09-14
 
 ### Added
 - MSI engine: files (globs), shortcuts, tasks (features), registry, environment variables, services, file associations, launch conditions, major upgrades, per-user/per-machine/either scope.

@@ -181,7 +181,7 @@ ProductName	Contoso Notes
 ProductVersion	1.4.2
 SecureCustomProperties	TENON_UPGRADE_DETECTED;TENON_DOWNGRADE_DETECTED
 TenonDisplayVersion	1.4.2
-TenonVersion	0.1.0
+TenonVersion	<version>
 UpgradeCode	{6F1B2C0E-9C53-4D8E-9A1E-3B2F0C1D9A77}
 
 Registry	Root	Key	Name	Value	Component_
