@@ -25,12 +25,16 @@ public sealed class PayloadWriter
 
     public IReadOnlyList<string> EntryNames => _entries.Select(e => e.name).ToList();
 
+    /// <summary>Optional step run on the copied stub before the payload is appended (for example, patching the icon).</summary>
+    public Action<string>? PrepareStub { get; set; }
+
     public void Write(string stubPath, string outputPath)
     {
         var dir = Path.GetDirectoryName(outputPath);
         if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
         File.Copy(stubPath, outputPath, overwrite: true);
         File.SetAttributes(outputPath, FileAttributes.Normal);
+        PrepareStub?.Invoke(outputPath);
 
         using var output = new FileStream(outputPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
         output.Seek(0, SeekOrigin.End);

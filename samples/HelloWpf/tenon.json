@@ -10,6 +10,7 @@
     "upgradeCode": "A1B2C3D4-0001-4A5B-9C8D-0123456789AB",
     "description": "Sample WPF application packaged with Tenon",
     "url": "https://github.com/LiadBenMoshe/tenon",
+    "icon": "Assets\\app.ico",
     "arch": "x64"
   },
   "install": {

@@ -196,6 +196,12 @@ public sealed class BuildContext
         return inputs;
     }
 
+    /// <summary>Makes file references in the definition absolute so later steps do not depend on the working directory.</summary>
+    public void ResolveDefinitionPaths()
+    {
+        if (!string.IsNullOrEmpty(Definition.Product.Icon)) Definition.Product.Icon = Document.Resolve(Definition.Product.Icon!);
+    }
+
     public void Harvest()
     {
         var constants = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)

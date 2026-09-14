@@ -42,6 +42,7 @@ public sealed class BuildCommand
 
         // 2. Macros, harvesting, planning
         ctx.ExpandMacros();
+        ctx.ResolveDefinitionPaths();
         ctx.Harvest();
         ctx.Lint.ThrowIfErrors();
 

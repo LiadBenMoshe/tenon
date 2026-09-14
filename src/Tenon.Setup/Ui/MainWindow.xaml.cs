@@ -31,16 +31,14 @@ public partial class MainWindow : Window
 
         if (vm.LogoBytes != null)
         {
+            // ui.theme.logo (png/jpg) or product.icon (.ico): BitmapDecoder handles both and picks the largest frame of an icon.
             try
             {
-                var image = new BitmapImage();
-                image.BeginInit();
-                image.StreamSource = new MemoryStream(vm.LogoBytes);
-                image.CacheOption = BitmapCacheOption.OnLoad;
-                image.EndInit();
-                image.Freeze();
-                Logo.Source = image;
-                TitleIcon.Source = image;
+                var decoder = BitmapDecoder.Create(new MemoryStream(vm.LogoBytes), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                var frame = decoder.Frames.OrderByDescending(f => f.PixelWidth).First();
+                frame.Freeze();
+                Logo.Source = frame;
+                TitleIcon.Source = frame;
             }
             catch
             {

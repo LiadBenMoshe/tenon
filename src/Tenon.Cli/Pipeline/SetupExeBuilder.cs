@@ -46,11 +46,22 @@ public sealed class SetupExeBuilder
         if (!string.IsNullOrEmpty(def.Product.Icon))
         {
             var icon = _ctx.Document.Resolve(def.Product.Icon!);
-            if (File.Exists(icon))
+            if (!File.Exists(icon)) throw new FileNotFoundException($"product.icon '{icon}' does not exist.");
+            manifest.IconEntry = "product.ico";
+            writer.AddFile(manifest.IconEntry, icon);
+            // The Setup.exe file itself gets the product icon instead of the Tenon icon.
+            writer.PrepareStub = stubCopy =>
             {
-                manifest.IconEntry = "product.ico";
-                writer.AddFile(manifest.IconEntry, icon);
-            }
+                try
+                {
+                    Pe.IconResourceUpdater.Apply(stubCopy, icon);
+                    _log.Debug("Applied product icon to Setup.exe");
+                }
+                catch (Exception ex)
+                {
+                    _log.Warn($"Could not apply the product icon to Setup.exe: {ex.Message}");
+                }
+            };
         }
         // Prerequisites: resolve, download to the local cache and embed unless marked download-only.
         manifest.Prerequisites.Clear();

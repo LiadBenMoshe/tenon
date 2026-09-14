@@ -14,3 +14,4 @@ All notable changes to Tenon are recorded here. The format follows [Keep a Chang
 - CLI: `init`, `build`, `validate`, `inspect`, `run`, `release`, `sign`, `schema`, `doctor`.
 - MSBuild integration (`Tenon.MSBuild`): `dotnet publish -p:BuildInstaller=true`.
 - JSON schema for `tenon.json`, documentation, samples, unit and end-to-end tests.
+- `product.icon` replaces the Tenon icon on the Setup.exe file and in the wizard; `ui.theme.logo` overrides the wizard logo.

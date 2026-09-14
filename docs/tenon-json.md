@@ -17,6 +17,17 @@ Inno-style constants make paths readable and portable:
 | `{sys}`, `{win}`, `{temp}`, `{fonts}` | System folders |
 | `{publish}`, `{src}` | Build time only: the publish output and the folder of tenon.json |
 
+## Branding: icon and logo
+
+| Property | Effect |
+|---|---|
+| `product.icon` (an `.ico` file) | Icon of the Setup.exe file in Explorer, icon in Add/Remove Programs, and the wizard logo when no `ui.theme.logo` is set. |
+| `ui.theme.logo` (png/jpg) | Logo shown in the wizard's side panel and title bar; overrides the icon there. |
+| `ui.theme.accent`, `ui.theme.background`, `ui.theme.font`, `ui.theme.darkMode` | Colors and font of the wizard; `darkMode` is `auto` (follow Windows), `light` or `dark`. |
+| `ui.license` (rtf/txt) | Adds the license page. |
+
+Without `product.icon` the Setup.exe keeps the generic Tenon icon.
+
 ## Macros
 
 `$(Name)` values are replaced at build time: `$(AssemblyVersion)`, `$(AssemblyInformationalVersion)`, `$(ProductName)`, `$(Publisher)`, `$(Version)`, `$(Arch)`, `$(Configuration)`, `$(RuntimeIdentifier)`, `$(env.NAME)` (environment variable, empty when unset).

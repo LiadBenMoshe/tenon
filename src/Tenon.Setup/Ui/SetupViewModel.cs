@@ -53,7 +53,9 @@ public sealed class SetupViewModel : ObservableObject
             LicenseIsRtf = m.Ui.LicenseEntry!.EndsWith(".rtf", StringComparison.OrdinalIgnoreCase);
             LicenseText = LicenseIsRtf ? System.Text.Encoding.ASCII.GetString(bytes) : System.Text.Encoding.UTF8.GetString(bytes);
         }
+        // Wizard logo: ui.theme.logo wins, then product.icon, then the icon of Setup.exe itself.
         if (m.Ui.LogoEntry != null && engine.HasEntry(m.Ui.LogoEntry)) LogoBytes = engine.ReadEntry(m.Ui.LogoEntry);
+        else if (m.IconEntry != null && engine.HasEntry(m.IconEntry)) LogoBytes = engine.ReadEntry(m.IconEntry);
 
         NextCommand = new RelayCommand(Next, () => CanGoNext);
         BackCommand = new RelayCommand(Back, () => CanGoBack);
